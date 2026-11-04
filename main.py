@@ -165,3 +165,86 @@ class TourService:
             return 1.1
         else:
             return 1.0
+        
+
+def parse_date(text: str) -> date:
+    """Преобразует строку в дату"""
+    from datetime import datetime
+    try:
+        return datetime.strptime(text.strip(), "%d.%m.%Y").date()
+    except ValueError:
+        raise ValueError("Неверный формат даты. Используйте ДД.ММ.ГГГГ")
+
+
+def main():
+    print("=" * 60)
+    print("МОДУЛЬ ПОДБОРА И РАСЧЁТА ТУРИСТИЧЕСКИХ ПАКЕТОВ")
+    print("=" * 60)
+
+    tours = get_sample_tours()
+    service = TourService(tours)
+
+    try:
+        destination = input("\nНаправление (например: Турция): ").strip()
+        if not destination:
+            raise ValueError("Направление не может быть пустым")
+
+        start = parse_date(input("Дата выезда (ДД.ММ.ГГГГ): "))
+        end = parse_date(input("Дата возвращения (ДД.ММ.ГГГГ): "))
+
+        if end <= start:
+            raise ValueError("Дата возвращения должна быть позже даты выезда")
+
+        adults = int(input("Количество взрослых: "))
+        if adults < 1:
+            raise ValueError("Должен быть хотя бы 1 взрослый")
+
+        children_input = input("Количество детей (до 12 лет): ").strip()
+        children = int(children_input) if children_input else 0
+        if children < 0:
+            raise ValueError("Количество детей не может быть отрицательным")
+
+        budget_input = input("Максимальный бюджет (Enter — без ограничений): ").strip()
+        max_budget = float(budget_input) if budget_input else None
+        if max_budget is not None and max_budget < 0:
+            raise ValueError("Бюджет не может быть отрицательным")
+
+        print("\nДополнительные услуги (можно несколько через запятую):")
+        print("  страховка, трансфер, экскурсии")
+        extras = input("Ваш выбор: ").strip()
+        extra_services = [s.strip().lower() for s in extras.split(",") if s.strip()]
+
+        request = ClientRequest(
+            destination=destination,
+            start_date=start,
+            end_date=end,
+            adults=adults,
+            children=children,
+            max_budget=max_budget,
+            extra_services=extra_services
+        )
+
+        results = service.search(request)
+
+        print("\n" + "=" * 60)
+        if not results:
+            print("Подходящих туров не найдено.")
+        else:
+            print(f"Найдено вариантов: {len(results)}\n")
+            for i, res in enumerate(results, 1):
+                t = res["tour"]
+                print(f"{i}. {t.name} ({t.destination})")
+                print(f"   Даты: {t.start_date.strftime('%d.%m.%Y')} — {t.end_date.strftime('%d.%m.%Y')}")
+                print(f"   Питание: {t.meal_type} | Номер: {t.room_type}")
+                print(f"   Итоговая стоимость: {res['total_price']:,.0f} руб.")
+                print(f"   Описание: {t.description}")
+                print("-" * 50)
+
+    except ValueError as e:
+        print(f"\nОшибка ввода: {e}")
+    except Exception as e:
+        print(f"\nПроизошла ошибка: {e}")
+
+
+if __name__ == "__main__":
+    main()
