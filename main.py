@@ -36,50 +36,56 @@ def get_sample_tours() -> List[TourPackage]:
     """Возвращает список тестовых туристических пакетов"""
     return [
         TourPackage(1, "Солнечный берег Deluxe", "Болгария",
-                    date(2025, 6, 10), date(2025, 6, 20),
-                    1850, "double", "AI", 4, "Отель 4*, первый берег"),
+                    date(2025, 6, 10), date(2025, 6, 20), 1850, "double", "AI", 4, "Отель 4*, первый берег"),
         TourPackage(2, "Анталия All Inclusive", "Турция",
-                    date(2025, 7, 5), date(2025, 7, 15),
-                    2400, "double", "AI", 4, "Отель 5*, ультра все включено"),
+                    date(2025, 7, 5), date(2025, 7, 15), 2400, "double", "AI", 4, "Отель 5*, ультра все включено"),
         TourPackage(3, "Египет Хургада", "Египет",
-                    date(2025, 5, 15), date(2025, 5, 25),
-                    1950, "double", "AI", 3, "Отель 4*, коралловый риф"),
+                    date(2025, 5, 15), date(2025, 5, 25), 1950, "double", "AI", 3, "Отель 4*, коралловый риф"),
         TourPackage(4, "Греция Крит Family", "Греция",
-                    date(2025, 8, 1), date(2025, 8, 12),
-                    3200, "family", "HB", 5, "Семейный отель, анимация"),
+                    date(2025, 8, 1), date(2025, 8, 12), 3200, "family", "HB", 5, "Семейный отель, анимация"),
         TourPackage(5, "Тунис бюджетный", "Тунис",
-                    date(2025, 6, 20), date(2025, 6, 30),
-                    1450, "double", "BB", 3, "Отель 3*, хороший пляж"),
+                    date(2025, 6, 20), date(2025, 6, 30), 1450, "double", "BB", 3, "Отель 3*, хороший пляж"),
         TourPackage(6, "ОАЭ Дубай", "ОАЭ",
-                    date(2025, 9, 10), date(2025, 9, 17),
-                    4100, "double", "BB", 2, "Отель 5*, центр Дубая"),
+                    date(2025, 9, 10), date(2025, 9, 17), 4100, "double", "BB", 2, "Отель 5*, центр Дубая"),
         TourPackage(7, "Черногория Будва", "Черногория",
-                    date(2025, 7, 12), date(2025, 7, 22),
-                    2100, "double", "HB", 4, "Вид на море"),
+                    date(2025, 7, 12), date(2025, 7, 22), 2100, "double", "HB", 4, "Вид на море"),
         TourPackage(8, "Испания Барселона", "Испания",
-                    date(2025, 8, 5), date(2025, 8, 15),
-                    2800, "double", "BB", 3, "Центр города"),
+                    date(2025, 8, 5), date(2025, 8, 15), 2800, "double", "BB", 3, "Центр города"),
         TourPackage(9, "Сочи Маринс Парк", "Россия",
-                    date(2025, 7, 1), date(2025, 7, 10),
-                    1650, "double", "AI", 4, "Отель 4*, аквапарк"),
+                    date(2025, 7, 1), date(2025, 7, 10), 1650, "double", "AI", 4, "Отель 4*, аквапарк"),
         TourPackage(10, "Крым Ялта Интурист", "Россия",
-                    date(2025, 6, 15), date(2025, 6, 25),
-                    1550, "double", "HB", 3, "Вид на море, набережная"),
+                    date(2025, 6, 15), date(2025, 6, 25), 1550, "double", "HB", 3, "Вид на море, набережная"),
         TourPackage(11, "Таиланд Пхукет", "Таиланд",
-                    date(2025, 11, 1), date(2025, 11, 12),
-                    3500, "double", "BB", 3, "Пляж Ката, отель 4*"),
+                    date(2025, 11, 1), date(2025, 11, 12), 3500, "double", "BB", 3, "Пляж Ката, отель 4*"),
         TourPackage(12, "Мальдивы Paradise", "Мальдивы",
-                    date(2025, 10, 5), date(2025, 10, 15),
-                    8900, "double", "AI", 2, "Водные виллы, всё включено"),
+                    date(2025, 10, 5), date(2025, 10, 15), 8900, "double", "AI", 2, "Водные виллы"),
         TourPackage(13, "Италия Римини", "Италия",
-                    date(2025, 7, 20), date(2025, 7, 30),
-                    2650, "double", "HB", 4, "Отель у пляжа"),
+                    date(2025, 7, 20), date(2025, 7, 30), 2650, "double", "HB", 4, "Отель у пляжа"),
         TourPackage(14, "Кипр Айя-Напа", "Кипр",
-                    date(2025, 8, 10), date(2025, 8, 20),
-                    3100, "double", "AI", 4, "Молодёжный курорт"),
+                    date(2025, 8, 10), date(2025, 8, 20), 3100, "double", "AI", 4, "Молодёжный курорт"),
         TourPackage(15, "Грузия Батуми", "Грузия",
-                    date(2025, 6, 5), date(2025, 6, 15),
-                    1750, "double", "BB", 3, "Набережная, современный отель"),
+                    date(2025, 6, 5), date(2025, 6, 15), 1750, "double", "BB", 3, "Набережная"),
+        # Дополнительные туры с другими датами
+        TourPackage(16, "Турция Кемер Early", "Турция",
+                    date(2025, 5, 20), date(2025, 5, 30), 2100, "double", "AI", 4, "Раннее лето, тихо"),
+        TourPackage(17, "Турция Аланья Family", "Турция",
+                    date(2025, 8, 1), date(2025, 8, 11), 2550, "family", "AI", 5, "Семейный, аквапарк"),
+        TourPackage(18, "Египет Шарм-эль-Шейх", "Египет",
+                    date(2025, 9, 1), date(2025, 9, 11), 2200, "double", "AI", 3, "Красное море"),
+        TourPackage(19, "Греция Родос", "Греция",
+                    date(2025, 7, 8), date(2025, 7, 18), 2900, "double", "HB", 3, "Исторический остров"),
+        TourPackage(20, "Россия Анапа", "Россия",
+                    date(2025, 7, 15), date(2025, 7, 25), 1400, "double", "BB", 4, "Песчаный пляж"),
+        TourPackage(21, "ОАЭ Абу-Даби", "ОАЭ",
+                    date(2025, 11, 10), date(2025, 11, 17), 3800, "double", "BB", 2, "Современный город"),
+        TourPackage(22, "Испания Майорка", "Испания",
+                    date(2025, 6, 12), date(2025, 6, 22), 2700, "double", "AI", 4, "Балеарские острова"),
+        TourPackage(23, "Черногория Тиват", "Черногория",
+                    date(2025, 8, 3), date(2025, 8, 13), 2300, "double", "HB", 3, "Которский залив"),
+        TourPackage(24, "Таиланд Паттайя", "Таиланд",
+                    date(2025, 12, 1), date(2025, 12, 12), 3200, "double", "BB", 3, "Ночная жизнь, пляжи"),
+        TourPackage(25, "Мальдивы Economy", "Мальдивы",
+                    date(2025, 4, 10), date(2025, 4, 20), 6500, "double", "BB", 2, "Более доступный вариант"),
     ]
 
 class TourService:
@@ -180,7 +186,59 @@ class TourService:
         else:
             return 1.0
         
+    def get_destinations(self) -> List[str]:
+        """Возвращает список уникальных направлений"""
+        return sorted(set(t.destination for t in self.tours))
 
+    def get_price_breakdown(self, tour: TourPackage, request: ClientRequest) -> dict:
+        """Возвращает подробную разбивку стоимости"""
+        adults_price = tour.base_price_per_person * request.adults
+        children_price = tour.base_price_per_person * 0.7 * request.children
+        base = adults_price + children_price
+
+        meal_coeffs = {"RO": 1.0, "BB": 1.1, "HB": 1.25, "AI": 1.4}
+        room_coeffs = {"single": 1.3, "double": 1.0, "family": 0.95}
+        meal_coeff = meal_coeffs.get(tour.meal_type, 1.0)
+        room_coeff = room_coeffs.get(tour.room_type, 1.0)
+        season_coeff = self._get_season_coefficient(tour.start_date)
+
+        after_coeffs = base * meal_coeff * room_coeff * season_coeff
+
+        extra_prices = {
+            "страховка": 350 * (request.adults + request.children),
+            "трансфер": 1200,
+            "экскурсии": 2500
+        }
+        extras_total = sum(extra_prices.get(s.lower(), 0) for s in request.extra_services)
+
+        total = after_coeffs + extras_total
+        early_discount = 0.0
+        if (tour.start_date - date.today()).days > 60:
+            early_discount = total * 0.05
+            total *= 0.95
+
+        return {
+            "base_adults": round(adults_price, 2),
+            "base_children": round(children_price, 2),
+            "meal_coeff": meal_coeff,
+            "room_coeff": room_coeff,
+            "season_coeff": season_coeff,
+            "extras": round(extras_total, 2),
+            "early_discount": round(early_discount, 2),
+            "total": round(total, 2)
+        }
+
+    def get_tour_info(self, tour: TourPackage) -> str:
+        """Красивое описание тура"""
+        return (
+            f"{tour.name}\n"
+            f"  Направление: {tour.destination}\n"
+            f"  Даты: {tour.start_date.strftime('%d.%m.%Y')} — {tour.end_date.strftime('%d.%m.%Y')}\n"
+            f"  Номер: {tour.room_type} | Питание: {tour.meal_type}\n"
+            f"  Макс. человек: {tour.max_people}\n"
+            f"  Базовая цена: {tour.base_price_per_person:,.0f} руб./чел.\n"
+            f"  {tour.description}"
+        )
 def parse_date(text: str) -> date:
     """Преобразует строку в дату"""
     from datetime import datetime
