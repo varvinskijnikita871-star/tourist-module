@@ -30,7 +30,7 @@ class ClientRequest:
     preferred_meal: Optional[str] = None
     max_budget: Optional[float] = None
     extra_services: List[str] = field(default_factory=list)
-    
+
 
 def get_sample_tours() -> List[TourPackage]:
     """Возвращает список тестовых туристических пакетов"""
@@ -38,34 +38,48 @@ def get_sample_tours() -> List[TourPackage]:
         TourPackage(1, "Солнечный берег Deluxe", "Болгария",
                     date(2025, 6, 10), date(2025, 6, 20),
                     1850, "double", "AI", 4, "Отель 4*, первый берег"),
-
         TourPackage(2, "Анталия All Inclusive", "Турция",
                     date(2025, 7, 5), date(2025, 7, 15),
                     2400, "double", "AI", 4, "Отель 5*, ультра все включено"),
-
         TourPackage(3, "Египет Хургада", "Египет",
                     date(2025, 5, 15), date(2025, 5, 25),
                     1950, "double", "AI", 3, "Отель 4*, коралловый риф"),
-
         TourPackage(4, "Греция Крит Family", "Греция",
                     date(2025, 8, 1), date(2025, 8, 12),
                     3200, "family", "HB", 5, "Семейный отель, анимация"),
-
         TourPackage(5, "Тунис бюджетный", "Тунис",
                     date(2025, 6, 20), date(2025, 6, 30),
                     1450, "double", "BB", 3, "Отель 3*, хороший пляж"),
-
         TourPackage(6, "ОАЭ Дубай", "ОАЭ",
                     date(2025, 9, 10), date(2025, 9, 17),
                     4100, "double", "BB", 2, "Отель 5*, центр Дубая"),
-
         TourPackage(7, "Черногория Будва", "Черногория",
                     date(2025, 7, 12), date(2025, 7, 22),
                     2100, "double", "HB", 4, "Вид на море"),
-
         TourPackage(8, "Испания Барселона", "Испания",
                     date(2025, 8, 5), date(2025, 8, 15),
                     2800, "double", "BB", 3, "Центр города"),
+        TourPackage(9, "Сочи Маринс Парк", "Россия",
+                    date(2025, 7, 1), date(2025, 7, 10),
+                    1650, "double", "AI", 4, "Отель 4*, аквапарк"),
+        TourPackage(10, "Крым Ялта Интурист", "Россия",
+                    date(2025, 6, 15), date(2025, 6, 25),
+                    1550, "double", "HB", 3, "Вид на море, набережная"),
+        TourPackage(11, "Таиланд Пхукет", "Таиланд",
+                    date(2025, 11, 1), date(2025, 11, 12),
+                    3500, "double", "BB", 3, "Пляж Ката, отель 4*"),
+        TourPackage(12, "Мальдивы Paradise", "Мальдивы",
+                    date(2025, 10, 5), date(2025, 10, 15),
+                    8900, "double", "AI", 2, "Водные виллы, всё включено"),
+        TourPackage(13, "Италия Римини", "Италия",
+                    date(2025, 7, 20), date(2025, 7, 30),
+                    2650, "double", "HB", 4, "Отель у пляжа"),
+        TourPackage(14, "Кипр Айя-Напа", "Кипр",
+                    date(2025, 8, 10), date(2025, 8, 20),
+                    3100, "double", "AI", 4, "Молодёжный курорт"),
+        TourPackage(15, "Грузия Батуми", "Грузия",
+                    date(2025, 6, 5), date(2025, 6, 15),
+                    1750, "double", "BB", 3, "Набережная, современный отель"),
     ]
 
 class TourService:
