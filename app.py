@@ -1,12 +1,12 @@
+import sys
+from PyQt6.QtWidgets import QApplication
 from gui import TourApp
-import tkinter as tk
-
 
 def main():
-    root = tk.Tk()
-    app = TourApp(root)
-    root.mainloop()
-
+    app = QApplication(sys.argv)
+    window = TourApp()
+    window.show()
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()

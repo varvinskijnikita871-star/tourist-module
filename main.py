@@ -1,242 +1,238 @@
-from dataclasses import dataclass, field
-from datetime import date
-from typing import List, Optional, Dict, Any
+from datetime import datetime, date
+import os
+import csv
+from database import DatabaseManager, init_db_with_samples
 
+init_db_with_samples()
 
-@dataclass
-class TourPackage:
-    """Туристический пакет"""
-    id: int
-    name: str
-    destination: str
-    start_date: date
-    end_date: date
-    base_price_per_person: float
-    room_type: str
-    meal_type: str
-    max_people: int
-    description: str = ""
+class Tour:
+    def __init__(self, id, name, destination, city, stars, start_date, end_date, base_price, room_type, meal_type, max_people, description="", reviews="", weather="☀️ +28°C, вода +24°C"):
+        self.id = id
+        self.name = name
+        self.destination = destination
+        self.city = city
+        self.stars = stars
+        self.start_date = start_date if isinstance(start_date, date) else datetime.strptime(str(start_date), "%Y-%m-%d").date()
+        self.end_date = end_date if isinstance(end_date, date) else datetime.strptime(str(end_date), "%Y-%m-%d").date()
+        self.base_price = base_price
+        self.room_type = room_type
+        self.meal_type = meal_type
+        self.max_people = max_people
+        self.description = description
+        self.reviews = reviews
+        self.weather = weather
 
-    @property
-    def duration_days(self) -> int:
-        return (self.end_date - self.start_date).days
-
-    def __str__(self) -> str:
-        return (
-            f"{self.name} ({self.destination}) | "
-            f"{self.start_date.strftime('%d.%m.%Y')} - {self.end_date.strftime('%d.%m.%Y')} | "
-            f"{self.base_price_per_person:.0f} руб./чел."
-        )
-
-
-@dataclass
 class ClientRequest:
-    """Запрос клиента"""
-    destination: str
-    start_date: date
-    end_date: date
-    adults: int
-    children: int = 0
-    preferred_room: Optional[str] = None
-    preferred_meal: Optional[str] = None
-    max_budget: Optional[float] = None
-    min_budget: Optional[float] = None
-    extra_services: List[str] = field(default_factory=list)
-    name_query: Optional[str] = None
+    def __init__(self, destination="Все страны", city="Все города", adults=2, children=0, max_budget=None, extra_services=None, transport_type="✈️ Самолет", transport_class="Эконом"):
+        self.destination = destination
+        self.city = city
+        self.adults = adults
+        self.children = children
+        self.max_budget = max_budget
+        self.extra_services = extra_services or []
+        self.transport_type = transport_type
+        self.transport_class = transport_class
 
-    @property
-    def total_people(self) -> int:
-        return self.adults + self.children
-
-    def validate(self) -> None:
-        if not self.destination.strip():
-            raise ValueError("Направление не может быть пустым")
-        if self.end_date <= self.start_date:
-            raise ValueError("Дата возвращения должна быть позже даты выезда")
-        if self.adults < 1:
-            raise ValueError("Должен быть хотя бы 1 взрослый")
-        if self.children < 0:
-            raise ValueError("Количество детей не может быть отрицательным")
-        if self.max_budget is not None and self.max_budget < 0:
-            raise ValueError("Максимальный бюджет не может быть отрицательным")
-        if self.min_budget is not None and self.min_budget < 0:
-            raise ValueError("Минимальный бюджет не может быть отрицательным")
-
+class BookingRecord:
+    def __init__(self, tour_id, tour_name, traveler_name, passport, phone, adults, children, total_price):
+        self.tour_id = tour_id
+        self.tour_name = tour_name
+        self.traveler_name = traveler_name
+        self.passport = passport
+        self.phone = phone
+        self.adults = adults
+        self.children = children
+        self.total_price = total_price
 
 class TourService:
-    """Сервис поиска туров и расчёта стоимости"""
+    def __init__(self):
+        self.favorites = set()
+        self.tours = []
+        self.reload_tours()
+        self.reload_favorites()
 
-    MEAL_COEFFS = {"RO": 1.0, "BB": 1.1, "HB": 1.25, "AI": 1.4}
-    ROOM_COEFFS = {"single": 1.3, "double": 1.0, "family": 0.95}
-    EXTRA_PRICES = {
-        "страховка": 350,
-        "трансфер": 1200,
-        "экскурсии": 2500,
-    }
-    CHILD_COEFF = 0.7
-    EARLY_BOOKING_DAYS = 60
-    EARLY_BOOKING_DISCOUNT = 0.05
+    def reload_tours(self):
+        db = DatabaseManager()
+        rows = db.get_all_tours()
+        self.tours = []
+        for r in rows:
+            r_dict = dict(r)
+            tour = Tour(
+                id=r_dict.get("id"), 
+                name=r_dict.get("name"), 
+                destination=r_dict.get("destination"),
+                city=r_dict.get("city"), 
+                stars=r_dict.get("stars"),
+                start_date=r_dict.get("start_date"), 
+                end_date=r_dict.get("end_date"),
+                base_price=r_dict.get("base_price_per_person"), 
+                room_type=r_dict.get("room_type"),
+                meal_type=r_dict.get("meal_type"), 
+                max_people=r_dict.get("max_people"),
+                description=r_dict.get("description", ""),
+                reviews=r_dict.get("reviews", "Отзывов пока нет."),
+                weather=r_dict.get("weather", "☀️ Сезон отличный, +27°C")
+            )
+            self.tours.append(tour)
 
-    def __init__(self, tours: List[TourPackage]):
-        self.tours = tours
+    def reload_favorites(self):
+        db = DatabaseManager()
+        self.favorites = set(db.get_favorites_db())
 
-    # ---------- поиск ----------
-    def search(self, request: ClientRequest) -> List[Dict[str, Any]]:
-        request.validate()
+    def get_destinations(self):
+        dests = sorted(list(set(t.destination for t in self.tours)))
+        return ["Все страны"] + dests
+
+    def get_cities(self, destination=None):
+        if not destination or destination == "Все страны":
+            cities = [t.city for t in self.tours]
+        else:
+            cities = [t.city for t in self.tours if destination.lower() in t.destination.lower()]
+        return ["Все города"] + sorted(list(set(cities)))
+
+    def toggle_favorite(self, tour_id):
+        db = DatabaseManager()
+        if tour_id in self.favorites:
+            self.favorites.remove(tour_id)
+            db.remove_favorite_db(tour_id)
+        else:
+            self.favorites.add(tour_id)
+            db.add_favorite_db(tour_id)
+
+    def get_favorite_tours(self):
+        return [t for t in self.tours if t.id in self.favorites]
+
+    def add_booking(self, booking: BookingRecord):
+        db = DatabaseManager()
+        db.add_booking_db(
+            booking.tour_id, str(booking.tour_name), str(booking.traveler_name),
+            str(booking.passport), str(booking.phone), int(booking.adults),
+            int(booking.children), float(booking.total_price)
+        )
+
+    def update_booking(self, booking_id, traveler_name, passport, phone, adults, children, total_price):
+        db = DatabaseManager()
+        db.update_booking_db(booking_id, str(traveler_name), str(passport), str(phone), int(adults), int(children), float(total_price))
+
+    def delete_booking(self, booking_id):
+        db = DatabaseManager()
+        db.delete_booking_db(booking_id)
+
+    def get_all_bookings(self):
+        db = DatabaseManager()
+        return db.get_all_bookings()
+
+    def search(self, req: ClientRequest):
         results = []
+        total_tourists = req.adults + req.children
+
+        transport_type_mult = {
+            "✈️ Самолет": 1.0,
+            "🚌 Автобус": 0.6,
+            "🚗 Автомобиль": 0.8,
+            "🚢 Лайнер": 1.4
+        }.get(req.transport_type, 1.0)
+
+        transport_class_mult = {
+            "Эконом": 1.0,
+            "Комфорт": 1.25,
+            "Бизнес-класс": 1.7,
+            "V.I.P.": 2.5
+        }.get(req.transport_class, 1.0)
+
+        t_mult = transport_type_mult * transport_class_mult
 
         for tour in self.tours:
-            if not self._is_suitable(tour, request):
-                continue
-
-            price = self.calculate_price(tour, request)
-
-            if request.max_budget is not None and price > request.max_budget:
-                continue
-            if request.min_budget is not None and price < request.min_budget:
-                continue
-
-            if request.name_query:
-                if request.name_query.lower() not in tour.name.lower():
+            if req.destination and req.destination != "Все страны":
+                if req.destination.lower() not in tour.destination.lower():
                     continue
+
+            if req.city and req.city != "Все города":
+                if req.city.lower() not in tour.city.lower():
+                    continue
+
+            nights = (tour.end_date - tour.start_date).days
+            if nights <= 0: nights = 7
+
+            total_pp = (tour.base_price or 0.0) * (nights / 7.0)
+            extra_cost = 0
+            if "страховка" in req.extra_services: extra_cost += 350 * total_tourists
+            if "трансфер" in req.extra_services: extra_cost += 1200
+            if "экскурсии" in req.extra_services: extra_cost += 2500 * total_tourists
+
+            base_total = (total_pp * req.adults) + (total_pp * 0.5 * req.children) + extra_cost
+            total_price = base_total * t_mult
+
+            if req.max_budget is not None and total_price > req.max_budget:
+                continue
 
             results.append({
                 "tour": tour,
-                "total_price": round(price, 2),
-                "price_per_person": round(price / max(request.total_people, 1), 2),
-                "breakdown": self.get_price_breakdown(tour, request),
+                "total_price": total_price,
+                "nights": nights
             })
 
-        results.sort(key=lambda x: x["total_price"])
         return results
 
-    def _is_suitable(self, tour: TourPackage, request: ClientRequest) -> bool:
-        if request.destination.lower() not in tour.destination.lower():
-            return False
-        if tour.start_date > request.start_date or tour.end_date < request.end_date:
-            return False
-        if request.total_people > tour.max_people:
-            return False
-        if request.preferred_room and request.preferred_room != tour.room_type:
-            return False
-        if request.preferred_meal and request.preferred_meal != tour.meal_type:
-            return False
-        return True
+    def get_currency_symbol(self, currency):
+        return {"RUB": "₽", "USD": "$", "EUR": "€"}.get(currency, "RUB")
 
-    # ---------- цена ----------
-    def calculate_price(self, tour: TourPackage, request: ClientRequest) -> float:
-        adults_price = tour.base_price_per_person * request.adults
-        children_price = tour.base_price_per_person * self.CHILD_COEFF * request.children
-        base = adults_price + children_price
-
-        meal_coeff = self.MEAL_COEFFS.get(tour.meal_type, 1.0)
-        room_coeff = self.ROOM_COEFFS.get(tour.room_type, 1.0)
-        season_coeff = self._get_season_coefficient(tour.start_date)
-
-        total = base * meal_coeff * room_coeff * season_coeff
-        total += self._extras_cost(request)
-
-        if self._is_early_booking(tour.start_date):
-            total *= (1 - self.EARLY_BOOKING_DISCOUNT)
-
-        return total
-
-    def get_price_breakdown(self, tour: TourPackage, request: ClientRequest) -> dict:
-        adults_price = tour.base_price_per_person * request.adults
-        children_price = tour.base_price_per_person * self.CHILD_COEFF * request.children
-        base = adults_price + children_price
-
-        meal_coeff = self.MEAL_COEFFS.get(tour.meal_type, 1.0)
-        room_coeff = self.ROOM_COEFFS.get(tour.room_type, 1.0)
-        season_coeff = self._get_season_coefficient(tour.start_date)
-
-        after_coeffs = base * meal_coeff * room_coeff * season_coeff
-        extras_total = self._extras_cost(request)
-        total = after_coeffs + extras_total
-
-        early_discount = 0.0
-        if self._is_early_booking(tour.start_date):
-            early_discount = total * self.EARLY_BOOKING_DISCOUNT
-            total *= (1 - self.EARLY_BOOKING_DISCOUNT)
-
-        return {
-            "base_adults": round(adults_price, 2),
-            "base_children": round(children_price, 2),
-            "meal_coeff": meal_coeff,
-            "room_coeff": room_coeff,
-            "season_coeff": season_coeff,
-            "extras": round(extras_total, 2),
-            "early_discount": round(early_discount, 2),
-            "total": round(total, 2),
-        }
-
-    def _extras_cost(self, request: ClientRequest) -> float:
-        total = 0.0
-        for service in request.extra_services:
-            key = service.lower()
-            if key == "страховка":
-                total += self.EXTRA_PRICES["страховка"] * request.total_people
-            else:
-                total += self.EXTRA_PRICES.get(key, 0)
-        return total
-
-    def _get_season_coefficient(self, start: date) -> float:
-        month = start.month
-        if month in (6, 7, 8):
-            return 1.25
-        if month in (5, 9):
-            return 1.10
-        return 1.0
-
-    def _is_early_booking(self, start: date) -> bool:
-        return (start - date.today()).days > self.EARLY_BOOKING_DAYS
-
-    # ---------- справочники / аналитика ----------
-    def get_destinations(self) -> List[str]:
-        return sorted(set(t.destination for t in self.tours))
-
-    def get_tour_by_id(self, tour_id: int) -> Optional[TourPackage]:
-        for tour in self.tours:
-            if tour.id == tour_id:
-                return tour
-        return None
-
-    def get_tours_by_destination(self, destination: str) -> List[TourPackage]:
-        d = destination.lower()
-        return [t for t in self.tours if d in t.destination.lower()]
-
-    def get_statistics(self, results: List[Dict[str, Any]]) -> dict:
-        if not results:
-            return {"count": 0}
-        prices = [r["total_price"] for r in results]
-        cheapest = min(results, key=lambda x: x["total_price"])
-        expensive = max(results, key=lambda x: x["total_price"])
-        return {
-            "count": len(results),
-            "min_price": min(prices),
-            "max_price": max(prices),
-            "avg_price": sum(prices) / len(prices),
-            "cheapest_name": cheapest["tour"].name,
-            "expensive_name": expensive["tour"].name,
-        }
-
-    def get_tour_info(self, tour: TourPackage) -> str:
-        return (
-            f"{tour.name}\n"
-            f"  Направление: {tour.destination}\n"
-            f"  Даты: {tour.start_date.strftime('%d.%m.%Y')} — {tour.end_date.strftime('%d.%m.%Y')}\n"
-            f"  Длительность: {tour.duration_days} дн.\n"
-            f"  Номер: {tour.room_type} | Питание: {tour.meal_type}\n"
-            f"  Макс. человек: {tour.max_people}\n"
-            f"  Базовая цена: {tour.base_price_per_person:,.0f} руб./чел.\n"
-            f"  {tour.description}"
-        )
+    def convert_price(self, price_rub, currency):
+        rates = {"RUB": 1.0, "USD": 0.011, "EUR": 0.010}
+        return price_rub * rates.get(currency, 1.0)
 
 
-def parse_date(text: str) -> date:
-    """Преобразует строку ДД.ММ.ГГГГ в date"""
-    from datetime import datetime
-    try:
-        return datetime.strptime(text.strip(), "%d.%m.%Y").date()
-    except ValueError:
-        raise ValueError("Неверный формат даты. Используйте ДД.ММ.ГГГГ")
+def generate_travel_voucher(booking_record, filename="tour_voucher.pdf"):
+    from PyQt6.QtGui import QTextDocument, QPdfWriter
+    html_content = f"""
+    <div style="font-family: Arial, sans-serif; padding: 30px; border: 2px solid #e11d48; border-radius: 12px; max-width: 600px; margin: auto; background-color: #fff5f5;">
+        <h1 style="color: #e11d48; text-align: center;">✈️ TRAVELFINDER PRO</h1>
+        <h2 style="text-align: center; color: #1f2937;">ТУРИСТИЧЕСКИЙ ВАУЧЕР № {booking_record.tour_id}</h2>
+        <hr style="border: 1px solid #fecdd3;">
+        <p><b>🏨 Забронированный отель:</b> {booking_record.tour_name}</p>
+        <p><b>📌 Статус:</b> <span style="color: #059669; font-weight: bold;">ПОДТВЕРЖДЕНО И ОПЛАЧЕНО</span></p>
+        <br>
+        <h3 style="color: #4b5563; border-bottom: 1px solid #fecdd3; padding-bottom: 5px;">Данные туриста:</h3>
+        <p><b>👤 ФИО:</b> {booking_record.traveler_name}</p>
+        <p><b>🛂 Паспортные данные:</b> {booking_record.passport}</p>
+        <p><b>📞 Телефон для связи:</b> {booking_record.phone}</p>
+        <p><b>👥 Состав тура:</b> Взрослых — {booking_record.adults}, Детей — {booking_record.children}</p>
+        <br>
+        <div style="background-color: #e11d48; color: white; padding: 15px; border-radius: 8px; text-align: center; font-size: 14pt;">
+            <b>Итоговая стоимость: {booking_record.total_price:,.2f} ₽</b>
+        </div>
+        <p style="text-align: center; font-size: 9pt; color: #9ca3af; margin-top: 30px;">
+            Спасибо, что выбрали TravelFinder Pro! Желаем вам незабываемого путешествия.
+        </p>
+    </div>
+    """
+    doc = QTextDocument()
+    doc.setHtml(html_content)
+    pdf_path = os.path.abspath(filename)
+    writer = QPdfWriter(pdf_path)
+    doc.print_(writer)
+    return pdf_path
+
+
+def export_bookings_to_excel(filename="bookings_report.csv"):
+    """Экспорт в формат CSV (с разделителем-запятой для идеального открытия в Excel двойным кликом)"""
+    db = DatabaseManager()
+    bookings = db.get_all_bookings()
+    
+    filepath = os.path.abspath(filename)
+    with open(filepath, "w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.writer(f, delimiter=',')
+        writer.writerow(["ID", "ID Тура", "Название тура", "ФИО Туриста", "Паспорт", "Телефон", "Взрослых", "Детей", "Сумма (₽)"])
+        for b in bookings:
+            writer.writerow([
+                b.get("id"),
+                b.get("tour_id"),
+                b.get("tour_name"),
+                b.get("traveler_name"),
+                b.get("passport"),
+                b.get("phone"),
+                b.get("adults"),
+                b.get("children"),
+                b.get("total_price")
+            ])
+    return filepath
